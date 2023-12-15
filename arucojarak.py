@@ -21,9 +21,13 @@ ARUCO_DICT = {
 # arucoParams = cv2.aruco.DetectorParameters_create()
 arucoParams = cv2.aruco.DetectorParameters()
 arucoParams_2 = cv2.aruco.DetectorParameters()
+arucoParams_3 = cv2.aruco.DetectorParameters()
+arucoParams_4 = cv2.aruco.DetectorParameters()
 
-arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)
-arucoDict_2 = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_5X5_250)
+arucoDict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+arucoDict_2 = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+arucoDict_3 = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+arucoDict_4 = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 
 
 CACHED_PTS = None
@@ -35,6 +39,17 @@ CACHED_PTS_2 = None
 CACHED_IDS_2 = None
 Line_Pts_2 = None
 measure_2 = None
+
+CACHED_PTS_3 = None
+CACHED_IDS_3 = None
+Line_Pts_3 = None
+measure_3 = None
+
+CACHED_PTS_4 = None
+CACHED_IDS_4 = None
+Line_Pts_4 = None
+measure_4 = None
+
 while True:
     Dist = []
     image = vs.read()
@@ -90,9 +105,10 @@ while True:
                 cv2.putText(image, str(int(measure * ed)) + "cm", (int(300), int(300)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255))
                 print("ed", ed)
 
-    Dist_2 = []
-
-    markerCorners2, markerIDs2, rejectedImgPoints2 = detector.detectMarkers(image)
+# deteksi aruco2
+        Dist_2 = []
+    detector2 = cv2.aruco.ArucoDetector(arucoDict_2,arucoParams_2)
+    markerCorners2, markerIDs2, rejectedImgPoints2 = detector2.detectMarkers(image)
     frame_markers2 = cv2.aruco.drawDetectedMarkers(image.copy(), markerCorners2, markerIDs2)
     if len(markerCorners2) <= 0:
         if CACHED_PTS_2 is not None:
@@ -123,7 +139,7 @@ while True:
             cY_2 = int((topLeft_2[1] + bottomRight_2[1]) // 2)
 
 
-#perhitungan aruco jarak antar aruco
+#perhitungan aruco jarak antar aruco2
             measure_2 = abs(3.5 / (topLeft_2[0] - cX_2)) * 2.54  # Konversi ke sentimeter
             cv2.circle(image, (cX_2, cY_2), 4, (255, 0, 0), -1)
             cv2.putText(image, str(int(markerIDs2)), (int(topLeft_2[0] - 10), int(topLeft_2[1] - 10)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255))
@@ -144,7 +160,7 @@ while True:
                 print("ed_2", ed_2)
 
         # print((ed * measure)-(ed_2 * measure_2))
-    cv2.imshow("[INFO] marker detected", image)
+    cv2.imshow("display", image)
     key = cv2.waitKey(1) & 0xFF
     if key == ord('q'):
         break
