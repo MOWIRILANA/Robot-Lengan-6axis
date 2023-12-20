@@ -23,7 +23,7 @@
 
 int sudut1 = 0;
 int sudut2 = 35;
-int sudut3 = 0;
+int sudut3 = 90;
 int sudut4 = 180;
 int sudut5 = 120;//servo B
 int sudut6 = 60; //servo A
@@ -33,6 +33,18 @@ Servo servoMotor3;
 Servo servoMotor4;
 Servo servoMotor5;
 Servo servoMotor6;
+
+//Stepper Motor
+#include <Stepper.h>
+#define ledPin 2
+const int stepPin = 33;
+const int dirPin = 32;
+const int microsteps = 10;
+
+const int stepsPerRevolution = 200;
+Stepper myStepper(stepsPerRevolution, stepPin, dirPin);
+float desiredRotations = 0; //posisi motor stepper
+
 /* Your WiFi Credentials */
 const char* ssid = "ARMTECH"; // SSID
 const char* password = "inverse6"; // Password
@@ -48,8 +60,17 @@ Card Slider2(&dashboard, SLIDER_CARD, "Putar", "", 0, 180);
 Card Slider3(&dashboard, SLIDER_CARD, "Top Axis", "", 0, 180);
 Card Slider4(&dashboard, SLIDER_CARD, "Middle Axis", "", 0, 180);
 Card Slider5(&dashboard, SLIDER_CARD, "Axis Bawah", "", 0, 180);
+Card card1(&dashboard, BUTTON_CARD, "Otomatis 1");
+// Card Stepper(&dashboard, SLIDER_CARD, "Stepper", "", 0, 100);
+Card card2(&dashboard, BUTTON_CARD, "Stepper Kanan");
+Card card3(&dashboard, BUTTON_CARD, "Stepper kiri");
+Card card4(&dashboard, BUTTON_CARD, "Sistem");
+
 
 void setup() {
+  pinMode(ledPin, OUTPUT);
+  pinMode(stepPin, OUTPUT);
+  pinMode(dirPin, OUTPUT);
   Serial.begin(115200);
 
   
@@ -79,26 +100,53 @@ void setup() {
   servoMotor6.attach(SERVO6);
 
   //start position
-  servoMotor1.write(0);
+  servoMotor1.write(180);
   servoMotor2.write(35);
-  servoMotor3.write(0);
-  servoMotor4.write(0);
+  servoMotor3.write(90);
+  servoMotor4.write(180);
   servoMotor5.write(0);
   servoMotor6.write(180);
+  digitalWrite(ledPin, LOW);
+  
 }
 
 void loop(){
 
+  card4.attachCallback([&](int value){
+  // Serial.println("[Card1] Button Callback Triggered: "+String((value == 1)?"true":"false"));
   espdash();
-
-}
-
-void ambilobjek1(){
+  ambilobjek1();
+  card4.update(value);
+  dashboard.sendUpdates();
+});
   
 }
 
+void ambilobjek1(){
+  //otomatis1
+  card1.attachCallback([&](int value){
+  digitalWrite(ledPin, !digitalRead(ledPin));
+  sudut5 = 157;
+  sudut6 = 180-sudut5;
+  delay(1000);
+  sudut4 = 180-32;
+  delay(1000);
+  sudut1 = 180-108;
+  Serial.println("Button1: "+String(value));
+  card1.update(value);
+  dashboard.sendUpdates();
+});
+servoMotor1.write(sudut1);
+servoMotor2.write(sudut2);
+servoMotor3.write(sudut3);
+servoMotor4.write(sudut4);
+servoMotor5.write(sudut5);
+servoMotor6.write(sudut6);
+}
+
 void espdash(){
-  //Servo 1
+
+  //Servo Capit
   Slider1.attachCallback([&](int value){
     sudut1 = 180-value;
     // Serial.println("sudutservo1: "+sudut1);
@@ -107,7 +155,7 @@ void espdash(){
   });
   servoMotor1.write(sudut1);
 
-//Servo2
+//Servo putar
   Slider2.attachCallback([&](int value){
     sudut2 = value;
     Serial.println("sudutservo2: "+sudut2);
@@ -117,7 +165,7 @@ void espdash(){
   servoMotor2.write(sudut2);
 
 
-//Servo3
+//Servo Top Axis
   Slider3.attachCallback([&](int value){
     sudut3 = value;
     Serial.println("sudutservo3: "+sudut3);
@@ -126,7 +174,7 @@ void espdash(){
   });
   servoMotor3.write(sudut3);
 
-//Servo 4
+//Servo Middle Axis
   Slider4.attachCallback([&](int value){
     sudut4 = 180-value;
     // Serial.println("Servo4: "+String(value));
@@ -137,7 +185,7 @@ void espdash(){
   });
   servoMotor4.write(sudut4);
 
-//Servo5
+//Servo bottom Axis
   Slider5.attachCallback([&](int value){
     sudut5 = value;
     sudut6 = 180-sudut5;
@@ -152,5 +200,57 @@ void espdash(){
   });
   servoMotor5.write(sudut5);
   servoMotor6.write(sudut6);
-
+  
+//stepper motor
+  card2.attachCallback([&](int value){
+    Serial.println("stepperkanan: "+String((value == 1)?"true":"false"));
+    digitalWrite(ledPin, HIGH);
+    baseKanan();
+    card2.update(value);
+    dashboard.sendUpdates();
+  });
+card3.attachCallback([&](int value){
+    Serial.println("stepperkiri: "+String((value == 1)?"true":"false"));
+    digitalWrite(ledPin, HIGH);
+    baseKiri();
+    card3.update(value);
+    dashboard.sendUpdates();
+  });
 }
+
+void baseKanan(){
+  float desiredRotations = 10; //posisi motor stepper
+  float posisi = desiredRotations/100;
+  int stepsToMove = stepsPerRevolution * microsteps * posisi;
+  int stepDelay = 1000;
+  digitalWrite(dirPin, LOW);
+
+  // Gerakkan motor sesuai jumlah langkah yang dihitung
+  for (int i = 0; i < stepsToMove; i++) {
+    digitalWrite(stepPin, HIGH);
+    delayMicroseconds(stepDelay);  
+    digitalWrite(stepPin, LOW);
+    delayMicroseconds(stepDelay); 
+  }
+ 
+}
+
+void baseKiri(){
+  float desiredRotations = 10; //posisi motor stepper
+  float posisi = desiredRotations/100;
+  int stepsToMove = stepsPerRevolution * microsteps * posisi;
+  int stepDelay = 1000;
+  digitalWrite(dirPin, HIGH);
+
+  // Gerakkan motor sesuai jumlah langkah yang dihitung
+  for (int i = 0; i < stepsToMove; i++) {
+    digitalWrite(stepPin, HIGH);
+    delayMicroseconds(stepDelay);  
+    digitalWrite(stepPin, LOW);
+    delayMicroseconds(stepDelay); 
+  }
+ 
+}
+
+
+
