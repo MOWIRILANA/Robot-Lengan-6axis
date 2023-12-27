@@ -1,15 +1,19 @@
 #include <WebServer.h>
 #include <WiFi.h>
 #include <esp32cam.h>
+#define LED_PIN GPIO_NUM_4
  
 const char* WIFI_SSID = "ARMTECH";
 const char* WIFI_PASS = "inverse6";
 
 WebServer server(80);
  
-static auto loRes = esp32cam::Resolution::find(320, 240);
+// static auto loRes = esp32cam::Resolution::find(320, 240);
+static auto hiRes = esp32cam::Resolution::find(1280, 720);
+
 
 void serveJpg()
+
 {
   auto frame = esp32cam::capture();
   if (frame == nullptr) {
@@ -28,7 +32,7 @@ void serveJpg()
  
 void handleJpgLo()
 {
-  if (!esp32cam::Camera.changeResolution(loRes)) {
+  if (!esp32cam::Camera.changeResolution(hiRes)) {
     Serial.println("SET-LO-RES FAIL");
   }
   serveJpg();
@@ -42,7 +46,7 @@ void  setup(){
     using namespace esp32cam;
     Config cfg;
     cfg.setPins(pins::AiThinker);
-    cfg.setResolution(loRes);
+    cfg.setResolution(hiRes);
     cfg.setBufferCount(2);
     cfg.setJpeg(80);
  
