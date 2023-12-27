@@ -20,8 +20,8 @@
 #define SERVO5 26 //B
 #define SERVO6 25 //A
 
-
-int sudut1 = 0;
+//setting start posisi
+int sudut1 = 180;
 int sudut2 = 35;
 int sudut3 = 90;
 int sudut4 = 180;
@@ -100,7 +100,7 @@ void setup() {
   servoMotor6.attach(SERVO6);
 
   //start position
-  servoMotor1.write(180);
+  servoMotor1.write(0);
   servoMotor2.write(35);
   servoMotor3.write(90);
   servoMotor4.write(180);
@@ -113,12 +113,12 @@ void setup() {
 void loop(){
 
   card4.attachCallback([&](int value){
-  // Serial.println("[Card1] Button Callback Triggered: "+String((value == 1)?"true":"false"));
   espdash();
-  ambilobjek1();
   card4.update(value);
   dashboard.sendUpdates();
 });
+
+  ambilobjek1();
   
 }
 
@@ -126,13 +126,15 @@ void ambilobjek1(){
   //otomatis1
   card1.attachCallback([&](int value){
   digitalWrite(ledPin, !digitalRead(ledPin));
-  sudut5 = 157;
+  sudut5 = 170;
   sudut6 = 180-sudut5;
+  delay(3000);
+  sudut4 = 180-25;
   delay(1000);
-  sudut4 = 180-32;
-  delay(1000);
-  sudut1 = 180-108;
-  Serial.println("Button1: "+String(value));
+  sudut1 = 180-136;
+  delay(5000);
+  sudut5 = 124;
+  sudut6 = 180-sudut5;
   card1.update(value);
   dashboard.sendUpdates();
 });
@@ -222,7 +224,7 @@ void baseKanan(){
   float desiredRotations = 10; //posisi motor stepper
   float posisi = desiredRotations/100;
   int stepsToMove = stepsPerRevolution * microsteps * posisi;
-  int stepDelay = 1000;
+  int stepDelay = 1200;
   digitalWrite(dirPin, LOW);
 
   // Gerakkan motor sesuai jumlah langkah yang dihitung
