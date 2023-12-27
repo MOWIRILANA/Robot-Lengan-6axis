@@ -152,11 +152,12 @@ void ambilobjek1(){
   // servoMotor6.write(56);// sudut6 = 180-sudut5;
   delay(500);
   baseKiri();
+  // baseKiri();
   delay(500);
   axisBawah(170,10,120,60);
   // servoMotor5.write(170);// sudut5 = 170;
   // servoMotor6.write(15);// sudut6 = 180-sudut5;
-  delay(2000);
+  delay(1000);
   servoMotor1.write(180);//buka
 }
 
