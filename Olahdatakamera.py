@@ -122,10 +122,13 @@ while True:
             if len(Dist) == 0:
                 if Line_Pts is not None:
                     Dist = Line_Pts
-            if len(Dist) == 2:
+            if len(Dist) == 4:
                 Line_Pts = Dist
-            if len(Dist) == 2:
-                cv2.line(image, Dist[0], Dist[1], (255, 0, 255), 2)
+            if len(Dist) == 4:
+                cv2.line(image, Dist[0], Dist[1], (255, 255, 0), 2)
+                cv2.line(image, Dist[1], Dist[2], (255, 0, 255), 2)
+                cv2.line(image, Dist[2], Dist[3], (0, 255, 255), 2)
+                cv2.line(image, Dist[3], Dist[0], (255, 255, 255), 2)
                 ed = ((Dist[0][0] - Dist[1][0]) ** 2 + ((Dist[0][1] - Dist[1][1]) ** 2)) ** 0.5
                 # Konversi panjang dari inci ke sentimeter
                 ed = measure * ed
