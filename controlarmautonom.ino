@@ -1,16 +1,5 @@
-// #include <Arduino.h>
-// #if defined(ESP8266)
-//   /* ESP8266 Dependencies */
-//   #include <ESP8266WiFi.h>
-//   #include <ESPAsyncTCP.h>
-//   #include <ESPAsyncWebServer.h>
-// #elif defined(ESP32)
-//   /* ESP32 Dependencies */
+
 #include <WiFi.h>
-// #include <AsyncTCP.h>
-// #include <ESPAsyncWebServer.h>
-// #endif
-// #include <ESPDash.h>
 
 #include<ESP32Servo.h>
 #define SERVO1 4  //capit
@@ -50,10 +39,13 @@ const int stepsPerRevolution = 200;
 Stepper myStepper(stepsPerRevolution, stepPin, dirPin);
 float desiredRotations = 0; //posisi motor stepper
 
-/* Your WiFi Credentials */
-const char* ssid = "ARMTECH"; // SSID
-const char* password = "inverse6"; // Password
+//konfigurasi wifi
+const char* ssid = "ARMTECH"; 
+const char* password = "inverse6"; 
 
+// Konfigurasi server
+const int server_port = 12345;
+WiFiServer server(server_port);
 
 void setup() {
   pinMode(ledPin, OUTPUT);
@@ -78,6 +70,8 @@ void setup() {
   }
   Serial.println("IP Address: ");
   Serial.println(WiFi.localIP());
+  server.begin();
+  Serial.println("Server Start");
 
   // /* Start AsyncWebServer */
   // server.begin();
@@ -102,6 +96,8 @@ void setup() {
 }
 
 void loop(){
+  terimaData();
+
   byte buttonState = digitalRead(button);
   if (buttonState == LOW){
     Serial.println("kanan");
@@ -159,6 +155,8 @@ void ambilobjek1(){
   // servoMotor6.write(15);// sudut6 = 180-sudut5;
   delay(1000);
   servoMotor1.write(180);//buka
+  delay(5000);
+  resetPosisi();
 }
 
 void baseKanan(){
@@ -225,4 +223,45 @@ void axisBawah(int targetPos5, int targetPos6, int delayBetweenSteps5, int delay
   }
 
   delay(500);
+}
+
+void terimaData(){
+  // Menerima koneksi dari klien
+  WiFiClient client = server.available();
+  if (client) {
+    Serial.println("Klien terhubung");
+
+    while (client.connected()) {
+      // Menerima data dari klien
+      if (client.available()) {
+        String data = client.readStringUntil('\n');
+        Serial.println("Menerima pesan dari klien: " + data);
+
+        // Mengonversi string menjadi integer
+        int receivedValue = data.toInt();
+
+        // Proses data di sini sesuai kebutuhan Anda
+        if(receivedValue <=100){
+          ambilobjek1();
+          digitalWrite(ledPin, HIGH);
+        }
+        else{
+          digitalWrite(ledPin, LOW);
+        }
+      }
+    }
+
+    // Menutup koneksi dengan klien
+    Serial.println("Klien terputus");
+    client.stop();
+  }
+}
+
+void resetPosisi(){
+  servoMotor1.write(180);
+  servoMotor2.write(35);
+  servoMotor3.write(90);
+  servoMotor4.write(180);
+  servoMotor5.write(120);
+  servoMotor6.write(60);
 }
