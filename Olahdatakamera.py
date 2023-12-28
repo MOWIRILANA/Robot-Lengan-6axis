@@ -97,8 +97,8 @@ while True:
         else:
            if CACHED_IDS is not None:
               markerIDs = CACHED_IDS
-        if len(markerCorners) < 2:
-           if len(CACHED_PTS) >= 2:
+        if len(markerCorners) < 4:
+           if len(CACHED_PTS) >= 4:
               corners = CACHED_PTS
         for (markerCorners, markerIDs) in zip(markerCorners, markerIDs):
             corners_abcd = markerCorners.reshape((4, 2))
