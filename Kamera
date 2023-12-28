@@ -11,10 +11,15 @@ WebServer server(80);
 // static auto loRes = esp32cam::Resolution::find(320, 240);
 static auto hiRes = esp32cam::Resolution::find(1280, 720);
 
+void turnOnLED() {
+  digitalWrite(LED_PIN, HIGH);
+}
 
-void serveJpg()
+void turnOffLED() {
+  digitalWrite(LED_PIN, LOW);
+}
 
-{
+void serveJpg() {
   auto frame = esp32cam::capture();
   if (frame == nullptr) {
     Serial.println("CAPTURE FAIL");
@@ -23,25 +28,29 @@ void serveJpg()
   }
   Serial.printf("CAPTURE OK %dx%d %db\n", frame->getWidth(), frame->getHeight(),
                 static_cast<int>(frame->size()));
- 
+
   server.setContentLength(frame->size());
   server.send(200, "image/jpeg");
   WiFiClient client = server.client();
   frame->writeTo(client);
+  turnOnLED();  // Menghidupkan LED saat gambar dikirim
 }
- 
-void handleJpgLo()
-{
+
+void handleJpgLo() {
   if (!esp32cam::Camera.changeResolution(hiRes)) {
     Serial.println("SET-LO-RES FAIL");
   }
   serveJpg();
+  turnOffLED();  // Mematikan LED setelah gambar dikirim
 }
  
- 
-void  setup(){
+void setup() {
   Serial.begin(115200);
   Serial.println();
+
+  pinMode(LED_PIN, OUTPUT);
+  turnOffLED();  // Pastikan LED dimatikan saat booting
+
   {
     using namespace esp32cam;
     Config cfg;
@@ -49,26 +58,28 @@ void  setup(){
     cfg.setResolution(hiRes);
     cfg.setBufferCount(2);
     cfg.setJpeg(80);
- 
+
     bool ok = Camera.begin(cfg);
     Serial.println(ok ? "CAMERA OK" : "CAMERA FAIL");
   }
+
   WiFi.persistent(false);
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
+
   Serial.print("http://");
   Serial.println(WiFi.localIP());
   Serial.println("  /cam-lo.jpg");
- 
+
   server.on("/cam-lo.jpg", handleJpgLo);
- 
+
   server.begin();
 }
  
-void loop()
-{
+void loop() {
   server.handleClient();
+  turnOnLED();
 }
