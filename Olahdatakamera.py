@@ -73,6 +73,7 @@ Line_Pts_4 = None
 measure_4 = None
 
 while True:
+    
     Dist = []
 
     img_resp=urllib.request.urlopen(url)
@@ -127,68 +128,19 @@ while True:
                 cv2.line(image, Dist[0], Dist[1], (255, 0, 255), 2)
                 ed = ((Dist[0][0] - Dist[1][0]) ** 2 + ((Dist[0][1] - Dist[1][1]) ** 2)) ** 0.5
                 # Konversi panjang dari inci ke sentimeter
-                ed = ed * measure
+                ed = measure * ed
 
-                cv2.putText(image, str(int(measure * ed)) + "cm", (int(300), int(300)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255))
-                print("ed", ed)
+                ed_int = round(ed)
+                # ed_int = max(0, min(ed_int, 255))
+                # ed_bytes = struct.pack("B", ed_int)
+                edlast = round(measure * ed)
+                pesan = str(edlast)
+                send_data(client_socket, str(pesan).encode('utf-8'))
+                cv2.putText(image, str(int(edlast)) + "cm", (int(300), int(300)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255))
+                print("ed", edlast)
+                # eds = 25
+                
 
-# deteksi aruco2
-        Dist_2 = []
-    detector2 = cv2.aruco.ArucoDetector(arucoDict_2,arucoParams_2)
-    markerCorners2, markerIDs2, rejectedImgPoints2 = detector2.detectMarkers(image)
-    frame_markers2 = cv2.aruco.drawDetectedMarkers(image.copy(), markerCorners2, markerIDs2)
-    if len(markerCorners2) <= 0:
-        if CACHED_PTS_2 is not None:
-            markerCorners2 = CACHED_PTS_2
-    if len(markerCorners2) > 0:
-        CACHED_PTS_2 = markerCorners2
-        if markerIDs2 is not None:
-            markerIDs2 = markerIDs2.flatten()
-            CACHED_IDS_2 = markerIDs2
-        else:
-            if CACHED_IDS_2 is not None:
-                markerIDs2 = CACHED_IDS_2
-        if len(markerCorners2) < 2:
-            if len(CACHED_PTS_2) >= 2:
-                corners = CACHED_PTS
-        for (markerCorners2, markerIDs2) in zip(markerCorners2, markerIDs2):
-            corners_abcd_2 = markerCorners2.reshape((4, 2))
-            (topLeft_2, topRight_2, bottomRight_2, bottomLeft_2) = corners_abcd_2
-            topRightPoint_2 = (int(topRight_2[0]), int(topRight_2[1]))
-            topLeftPoint_2 = (int(topLeft_2[0]), int(topLeft_2[1]))
-            bottomRightPoint_2 = (int(bottomRight_2[0]), int(bottomRight_2[1]))
-            bottomLeftPoint_2 = (int(bottomLeft_2[0]), int(bottomLeft_2[1]))
-            cv2.line(image, topLeftPoint_2, topRightPoint_2, (0, 255, 0), 2)
-            cv2.line(image, topRightPoint_2, bottomRightPoint_2, (0, 255, 0), 2)
-            cv2.line(image, bottomRightPoint_2, bottomLeftPoint_2, (0, 255, 0), 2)
-            cv2.line(image, bottomLeftPoint_2, topLeftPoint_2, (0, 255, 0), 2)
-            cX_2 = int((topLeft_2[0] + bottomRight_2[0]) // 2)
-            cY_2 = int((topLeft_2[1] + bottomRight_2[1]) // 2)
-
-
-#perhitungan aruco jarak antar aruco2
-            measure_2 = abs(3.5 / (topLeft_2[0] - cX_2)) * 2.54  # Konversi ke sentimeter
-            cv2.circle(image, (cX_2, cY_2), 4, (255, 0, 0), -1)
-            cv2.putText(image, str(int(markerIDs2)), (int(topLeft_2[0] - 10), int(topLeft_2[1] - 10)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255))
-            Dist_2.append((cX_2, cY_2))
-
-            if len(Dist_2) == 0:
-                if Line_Pts_2 is not None:
-                    Dist_2 = Line_Pts_2
-            if len(Dist_2) == 2:
-                Line_Pts_2 = Dist_2
-            if len(Dist_2) == 2:
-                cv2.line(image, Dist_2[0], Dist_2[1], (255, 0, 255), 2)
-                ed_2 = ((Dist_2[0][0] - Dist_2[1][0]) ** 2 + ((Dist_2[0][1] - Dist_2[1][1]) ** 2)) ** 0.5
-                # Konversi panjang dari inci ke sentimeter
-                ed_2 = ed_2 * measure_2
-
-                cv2.putText(image, str(int(measure_2 * ed_2)) + "cm", (int(300), int(300)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255))
-                print("ed_2", ed_2)
-
-    send_data(client_socket, markerIDs)
-
-        # print((ed * measure)-(ed_2 * measure_2))
     cv2.imshow("display", image)
     key = cv2.waitKey(1) & 0xFF
     if key == ord('q'):
